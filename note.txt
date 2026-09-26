@@ -1,0 +1,10 @@
+A few missing in a numeric column (like Delivery_person_Ratings) → impute with median
+A few missing in a categorical column (like Weatherconditions) → impute with mode, or a new "Unknown" category if it's meaningful
+A column with a huge chunk missing → might justify dropping it entirely
+--------------------
+Why .astype(float) and not .astype(int) for these: even though ages/ratings/counts look like whole numbers,
+we haven't imputed missing values yet (still NaN in some rows) — and NaN can only exist in a float column,
+not an int column. We'll convert to int later if needed, after imputation,
+if a column truly has no decimals.
+--------------------
+8-37°N latitude and 68-97°E longitude
