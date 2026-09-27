@@ -8,3 +8,43 @@ not an int column. We'll convert to int later if needed, after imputation,
 if a column truly has no decimals.
 --------------------
 8-37°N latitude and 68-97°E longitude
+--------------------
+time is between 10min and 50min, so outliers are fine not like when you have 200min
+one huge outlier can skew scaling and coefficients
+--------------------
+Continuous: can take any value in a range → Age = 24.3, 24.31, 24.312...
+Discrete: takes specific countable values → multiple_deliveries = 0, 1, 2, 3
+--------------------
+**Why `City`'s tiny "Semi-Urban" category (141 rows) matters:**
+
+- With so few examples, the model can't learn a reliable pattern for it — 110ish rows in training, ~31 in test, is thin.
+- **Linear models (Ridge, etc.):** may assign Semi-Urban a wildly off coefficient (e.g. ±20 min effect) just from noise in those few rows, not a real pattern.
+- **Tree models (RandomForest):** may barely use it as a split at all — it contributes little.
+
+**How to check later, with real evidence instead of guessing:**
+1. Look at the model's coefficient for Semi-Urban — if it's way bigger/smaller than Urban/Metropolitan's, that's a red flag.
+2. Filter test predictions to just Semi-Urban rows — if error is much worse there than other cities, it's struggling.
+3. Train twice (with vs. without merging Semi-Urban into Urban) and compare RMSE — if merging doesn't hurt performance, it confirms merging is safe/better.
+
+**Decision for now:** leave `City` as 3 separate categories. Revisit merging only if one of the checks above shows a real problem.
+
+Ready to move to visualizing `Time_taken(min)`'s distribution?
+----------------------
+**How to compare coefficients (once you have a trained Ridge/linear model, in Step 3-4):**
+
+1. **Extract them:**
+```python
+coefficients = pd.DataFrame({
+    'feature': X_train.columns,
+    'coefficient': model.coef_
+})
+coefficients = coefficients.sort_values('coefficient', key=abs, ascending=False)
+print(coefficients)
+```
+
+2. **Compare within the same group.** `City` becomes `City_Urban` and `City_Semi-Urban` after encoding — compare their coefficients to each other, not to unrelated features.
+
+3. **Look for a suspicious gap.** If `City_Urban = 2.3` but `City_Semi-Urban = 18.4`, that's a red flag — one city type shouldn't logically cause 8x more delay than a similar one.
+
+4. **Check the overall scale.** If most feature coefficients sit around 1-6 minutes, but one jumps to 18+, that's the standout to investigate — likely noise from too little data (141 rows), not a real effect.
+-------------------
