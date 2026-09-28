@@ -48,3 +48,33 @@ print(coefficients)
 
 4. **Check the overall scale.** If most feature coefficients sit around 1-6 minutes, but one jumps to 18+, that's the standout to investigate — likely noise from too little data (141 rows), not a real effect.
 -------------------
+Ridge — same as linear, but penalizes large coefficients (helps with the multicollinearity we removed via drop_first, and generally more stable)
+--------------------
+Decision Tree — captures non-linear patterns (e.g. "if traffic is Jam AND distance > 10km, delivery is slow"), but tends to overfit on its own
+Random Forest — many decision trees averaged together, usually the strongest of the four since it reduces the overfitting a single tree suffers from
+-------------------
+Ridge is Linear Regression plus a small penalty. The penalty stops the model from giving any feature a huge weight.
+Linear Regression finds the weight for each feature that gives the smallest error. Nothing stops a weight from getting very big.
+Ridge does the same, but it also adds a cost for big weights. So it prefers smaller, calmer weights, even if the error gets a tiny bit worse.
+-------------------
+**Linear Regression vs Ridge**
+
+- **Linear Regression** finds the weight for each feature that gives the smallest error. Nothing stops a weight from becoming very big.
+- **Ridge** is the same, plus a small penalty for big weights. It prefers calm, small weights.
+
+**When this matters**
+- When two columns carry almost the same information (like `distance_km` and `distance_miles`), Linear Regression can't decide how to share the credit between them.
+- It may pick weights like **+50 and -48**. They cancel each other, so the training predictions look fine.
+
+**Why big canceling weights are a problem**
+1. **They break on new data.** A tiny difference between the two columns gets multiplied by the big weights, so predictions can jump.
+2. **They are unstable.** Retrain on slightly different data and the weights change a lot.
+3. **They can't be explained.** "+50 for this, -48 for that" tells the business nothing.
+
+Ridge avoids this by choosing small weights (like +1 and +1) instead.
+
+**In your project**
+- You have about 32,000 rows and only 20 features, and your features are not near-copies.
+- So the weights were already calm, and Ridge changed almost nothing. You saw it yourself: Age 2.23906 vs 2.23919.
+- Result: Linear and Ridge scored almost the same (R² 0.5897). We ignore Ridge from now on.
+-------------------
