@@ -2,7 +2,5 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-data/raw/*.csv
-models/*.pkl
-models/*.joblib
 .ipynb_checkpoints/
+.DS_Store
